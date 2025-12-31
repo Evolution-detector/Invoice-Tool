@@ -3,35 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>安全发票助手 v1.12.1</title>
+    <title>安全发票助手 v1.13.0</title>
     
     <!-- 1. 全局错误捕捉 -->
     <script>
         window.onerror = function(msg, url, line, col, error) {
             var errorMsg = "程序启动异常：\n" + msg + "\n行号：" + line;
+            // 忽略非关键错误
             if(msg.indexOf('ResizeObserver') === -1) {
-                document.getElementById('loading-text').innerText = "⚠️ 程序加载出错，请检查网络或刷新";
-                document.getElementById('loading-text').style.color = "red";
-                alert(errorMsg);
+                var el = document.getElementById('loading-text');
+                if(el) {
+                    el.innerText = "⚠️ 加载出错，请检查网络或刷新（本产品仅限中国大陆地区使用）";
+                    el.style.color = "#ff4d4f";
+                    el.style.fontWeight = "bold";
+                }
+                console.error(errorMsg);
             }
         };
     </script>
 
-    <!-- 2. 核心依赖 -->
-    <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.3.4/vue.global.prod.min.js"></script>
-    <script src="https://cdn.bootcdn.net/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-    <script src="https://cdn.bootcdn.net/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script src="https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- 2. 核心依赖 (替换为国内速度最快的 npmmirror 源) -->
+    <!-- Vue 3 -->
+    <script src="https://registry.npmmirror.com/vue/3.3.4/files/dist/vue.global.prod.js"></script>
+    <!-- PDF-Lib -->
+    <script src="https://registry.npmmirror.com/pdf-lib/1.17.1/files/dist/pdf-lib.min.js"></script>
+    <!-- PDF.js (v2.16 稳定版) -->
+    <script src="https://registry.npmmirror.com/pdfjs-dist/2.16.105/files/build/pdf.min.js"></script>
+    <!-- JSZip -->
+    <script src="https://registry.npmmirror.com/jszip/3.10.1/files/dist/jszip.min.js"></script>
 
-    <!-- 3. 备用 CDN 加载逻辑 -->
+    <!-- 3. 备用 CDN 加载逻辑 (如果 npmmirror 挂了，尝试 unpkg) -->
     <script>
-        function loadScript(url) {
-            document.write('<script src="' + url + '"><\/script>');
-        }
-        if (typeof Vue === 'undefined') loadScript('https://unpkg.zhimg.com/vue@3.3.4/dist/vue.global.prod.js');
-        if (typeof PDFLib === 'undefined') loadScript('https://unpkg.zhimg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js');
-        if (typeof pdfjsLib === 'undefined') loadScript('https://unpkg.zhimg.com/pdfjs-dist@2.16.105/build/pdf.min.js');
-        if (typeof JSZip === 'undefined') loadScript('https://unpkg.zhimg.com/jszip@3.10.1/dist/jszip.min.js');
+        function loadFallback(url) { document.write('<script src="' + url + '"><\/script>'); }
+        if (typeof Vue === 'undefined') loadFallback('https://unpkg.zhimg.com/vue@3.3.4/dist/vue.global.prod.js');
+        if (typeof PDFLib === 'undefined') loadFallback('https://unpkg.zhimg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js');
+        if (typeof pdfjsLib === 'undefined') loadFallback('https://unpkg.zhimg.com/pdfjs-dist@2.16.105/build/pdf.min.js');
+        if (typeof JSZip === 'undefined') loadFallback('https://unpkg.zhimg.com/jszip@3.10.1/dist/jszip.min.js');
     </script>
 
     <style>
@@ -63,7 +70,7 @@
 
         .container {
             width: 100%;
-            max-width: 700px; 
+            max-width: 700px; /* 保持精致布局 */
             margin: 0 auto;
             padding: 40px 20px;
             flex: 1;
@@ -287,10 +294,9 @@
     <div id="loading-text" style="color: #666; font-size: 14px;">正在初始化组件...<br>首次加载可能需要几秒钟</div>
 </div>
 
-<!-- 修复点：添加 class="container" -->
 <div id="app" class="container">
     <header>
-        <h1>安全发票助手<span class="version">v1.12.1</span></h1>
+        <h1>安全发票助手<span class="version">v1.13.0</span></h1>
         <div class="subtitle">将多个单页的发票文件拼成单个 A4 竖版 PDF，便于打印留档<br>支持自动识别发票信息并重命名或导出文本文件</div>
     </header>
 
@@ -399,9 +405,9 @@
     const PDFLib = window.PDFLib || {};
     const { PDFDocument, rgb, degrees, grayscale } = PDFLib;
 
-    // 配置 PDF.js worker (使用 v2.16 版本的 worker)。本程序于2025年12月30日由ZYC制作完成。
+    // 配置 PDF.js worker (使用 npmmirror 源)
     if (window.pdfjsLib) {
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.bootcdn.net/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://registry.npmmirror.com/pdfjs-dist/2.16.105/files/build/pdf.worker.min.js';
     }
 
     createApp({
